@@ -4,9 +4,7 @@ from PyQt5.QtWidgets import QDialog, QApplication
 from PyQt5.uic import loadUi
 import sys
 
-from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QDialog, QApplication
-from PyQt5.uic import loadUi
+
 
 class LoginUI(QDialog):
     def __init__(self):
@@ -20,29 +18,98 @@ class LoginUI(QDialog):
         main_menu = MainMenuUI()
         widget.addWidget(main_menu)
         widget.setCurrentIndex(widget.currentIndex()+1)
+    
+    def login():
+        pass
+    
+    def signUp():
+        pass
+
+
 
 
 class MainMenuUI(QDialog):
     def __init__(self):
         super(MainMenuUI,self).__init__()
         loadUi("./UI/mainMenu.ui",self)
+    
+    def add_recipients_email():
+        pass
+    def delete_recipients_email():
+        pass
+    def add_project():
+        pass
+    def delete_project():
+        pass
+    def add_subject():
+        pass
+    def delete_subject():
+        pass
+    def select_project():
+        pass
+    def select_subject():
+        pass
+    def start_pomodoro():
+        pass
+    def show_summary():
+        pass
+    def send_email():
+        pass
+    def calculate_total_tracked_time():
+        pass
+    
+    
+    
 
 class PomodoroUI(QDialog):
     def __init__(self):
         super(PomodoroUI,self).__init__()
         loadUi("./UI/pomodoro.ui",self)
+  
+    def display_session_num():
+        pass
+    def add_task():
+        pass
+    def time_counter():
+        pass
+    def start_session():
+        pass
+    def end_session():
+        pass
+    def accomplished_task():
+        pass
+    
 
 
 class ShortBreakUI(QDialog):
     def __init__(self):
         super(ShortBreakUI,self).__init__()
         loadUi("./UI/shortBreak.ui",self)
+    
+    def time_counter():
+        pass
+    def start_timer():
+        pass
+    def pause_timer():
+        pass
+    def skip_break():
+        pass
+    
+    
 
 class LongBreakUI(QDialog):
     def __init__(self):
         super(LongBreakUI,self).__init__()
         loadUi("./UI/longBreak.ui",self)
-
+        
+    def time_counter():
+        pass
+    def start_timer():
+        pass
+    def pause_timer():
+        pass
+    def skip_break():
+        pass
 
 app = QApplication(sys.argv)
 UI = LoginUI() # This line determines which screen you will load at first
