@@ -1,11 +1,13 @@
 import re
 from time import time
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QDialog, QApplication
+from PyQt5.QtWidgets import QDialog, QApplication, QSizePolicy
 from PyQt5.uic import loadUi
-import sys
-
-
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
+from PyQt5.QtCore import QTimer
+import sys 
 
 class LoginUI(QDialog):
     def __init__(self):
@@ -31,8 +33,6 @@ class LoginUI(QDialog):
         sign_up_name = self.nameInputSignUp.text()
         self.errorTextSignUp.setText("")
         #self.go_main_menu()
-
-
 
 
 class MainMenuUI(QDialog):
@@ -144,39 +144,112 @@ class PomodoroUI(QDialog):
         pass
     
 
+#class ShortBreakUI(QDialog):
+    #def __init__(self):
+     #   super(ShortBreakUI,self).__init__()
+     #  loadUi("./UI/shortBreak.ui",self)
+    
+   # def time_counter():
+   #     pass
+   # def start_timer():
+   #     pass
+   # def pause_timer():
+   #     pass
+  #  def skip_break():
+    #    pass
 
 class ShortBreakUI(QDialog):
     def __init__(self):
-        super(ShortBreakUI,self).__init__()
-        loadUi("./UI/shortBreak.ui",self)
-    
-    def time_counter():
-        pass
-    def start_timer():
-        pass
-    def pause_timer():
-        pass
-    def skip_break():
-        pass
-    
-    
+        super(ShortBreakUI, self).__init__()
+        loadUi('ui/shortBreak.ui', self)
+        self.setWindowTitle('Short Break')
+        
+        self.remaining_time = 300  # 5 minutes in seconds   
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_time)
+        
+        self.startButton.clicked.connect(self.start_timer)
+        self.skipButton.clicked.connect(self.skip_break)
+        self.goToMainMenuButton.clicked.connect(self.go_to_main_menu)
+        
+        self.startButton.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.skipButton.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        
+        self.update_time()
+        
+    def update_time(self):
+        self.remaining_time -= 1
+        minutes = self.remaining_time // 60
+        seconds = self.remaining_time % 60
+        self.timeLabel.setText("{:02d}:{:02d}".format(minutes, seconds))
+        
+        if self.remaining_time <= 0:
+            self.timer.stop()
+            self.done(0)
+            
+    def start_timer(self):
+        self.timer.start(1000)
+        
+    def skip_break(self):
+        self.done(1)
+        
+    def go_to_main_menu(self):
+        self.done(2)
+
+#class LongBreakUI(QDialog):
+   # def __init__(self):
+     #   super(LongBreakUI,self).__init__()
+     #   loadUi("./UI/longBreak.ui",self)
+        
+  #  def time_counter():
+   #     pass
+  #  def start_timer():
+   #     pass
+  #  def pause_timer():
+   #     pass
+  #  def skip_break():
+   #     pass
 
 class LongBreakUI(QDialog):
     def __init__(self):
-        super(LongBreakUI,self).__init__()
-        loadUi("./UI/longBreak.ui",self)
+        super(LongBreakUI, self).__init__()
+        loadUi('ui/longBreak.ui', self)
+        self.setWindowTitle('Long Break')
+
+        self.remaining_time = 900  # 15 minutes in seconds   
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_time)
         
-    def time_counter():
-        pass
-    def start_timer():
-        pass
-    def pause_timer():
-        pass
-    def skip_break():
-        pass
+        self.startButton.clicked.connect(self.start_timer)
+        self.skipButton.clicked.connect(self.skip_timer)
+        self.goToMainMenuButton.clicked.connect(self.go_to_main_menu)
+        
+        self.startButton.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.skipButton.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        
+        self.update_time()
+        
+    def update_time(self):
+        self.remaining_time -= 1
+        minutes = self.remaining_time // 60
+        seconds = self.remaining_time % 60
+        self.timeLabel.setText("{:02d}:{:02d}".format(minutes, seconds))
+        
+        if self.remaining_time <= 0:
+            self.timer.stop()
+            self.done(0)
+            
+    def start_timer(self):
+        self.timer.start(1000)
+        
+    def skip_timer(self):
+        self.done(1)
+        
+    def go_to_main_menu(self):
+        self.done(2)
 
 app = QApplication(sys.argv)
-UI = LoginUI() # This line determines which screen you will load at first
+UI = LongBreakUI() # This line determines which screen you will load at first
 
 # You can also try one of other screens to see them.
     # UI = MainMenuUI()
