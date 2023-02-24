@@ -32,7 +32,33 @@ class MainMenuUI(QDialog):
     def __init__(self):
         super(MainMenuUI,self).__init__()
         loadUi("./UI/mainMenu.ui",self)
-    
+        recipients_email = self.addRecipientInput.text()
+        error_recipient = self.errorTextRecipientsEmailLabel
+        self.addRecipientButton.clicked.connect(self.add_recipients_email)
+        selected_recipient_delete = self.deleteRecipientCombo.text()
+        self.deleteRecipientButton.clicked.connect(self.delete_recipients_email)
+        selected_project_delete = self.projectDeleteCombo.text()
+        self.projectDeleteButton.clicked.connect(self.delete_project)
+        selected_subject_delete = self.subjectDeleteCombo.text()
+        self.subjectDeleteButton.clicked.connect(self.delete_subject)
+        project_add = self.addProjectInput.text()
+        error_project_input = self.errorTextProjectLabel
+        self.addProjectButton.clicked.connect(self.add_project)
+        subject_add = self.addSubjectInput.text()
+        selected_project_for_subject = self.addSubjectOnProjectCombo.text()
+        error_project_input=self.errorTextSubjectLabel
+        self.addSubjectButton.clicked.connect(self.add_subject)
+        selected_project_to_start = self.selectProjectCombo.text()
+        selected_subject_to_start = self.selectSubjectCombo.text()
+        self.startPomodoroButton.clicked.connect(self.start_pomodoro)
+        selected_project_summary = self.showSummaryProjectCombo.text()
+        selected_subject_summary = self.showSummarySubjectCombo.text()
+        selected_period_summary = self.showSummaryPeriodCombo.text()
+        self.showSummaryButton.clicked.connect(self.show_summary)
+        self.sendEmailThisSummaryButton.clicked.connect(self.send_email)
+        total_tracked_time = self.totalTrackedTimeDurationLabel
+
+        
     def add_recipients_email():
         pass
     def delete_recipients_email():
