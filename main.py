@@ -11,19 +11,25 @@ class LoginUI(QDialog):
         super(LoginUI,self).__init__()
         loadUi("./UI/login.ui",self)
 
-        # This is example of changing screen
-        self.loginButton.clicked.connect(self.go_main_menu)
+        self.loginButton.clicked.connect(self.login)
+        self.signUpButton.clicked.connect(self.signUp)
+
 
     def go_main_menu(self):
         main_menu = MainMenuUI()
         widget.addWidget(main_menu)
         widget.setCurrentIndex(widget.currentIndex()+1)
     
-    def login():
-        pass
+    def login(self):
+        login_email = self.emailInputLogin.text()
+        self.errorTextLogin.setText("")
+        #self.go_main_menu()
     
-    def signUp():
-        pass
+    def signUp(self):
+        sign_up_email = self.emailInputSignUp.text()
+        sign_up_name = self.nameInputSignUp.text()
+        self.errorTextSignUp.setText("")
+        #self.go_main_menu()
 
 
 
