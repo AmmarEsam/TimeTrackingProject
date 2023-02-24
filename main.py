@@ -129,7 +129,12 @@ class PomodoroUI(QDialog):
     def __init__(self):
         super(PomodoroUI,self).__init__()
         loadUi("./UI/pomodoro.ui",self)
-  
+        self.goToMainMenuButton.clicked.connect(self.main_menu)
+        self.addTask.clicked.connect(self.add_task)
+        self.startStopButton.clicked.connect(self.time_counter) 
+        self.doneButton.clicked.connect(self.end_session) 
+        self.labelAsNotFinishedButton.clicked.connect(self.accomplished_task)
+        
     def display_session_num():
         pass
     def add_task():
