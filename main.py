@@ -254,7 +254,7 @@ class LongBreakUI(QDialog):
         self.done(2)
 
 app = QApplication(sys.argv)
-UI = LongBreakUI() # This line determines which screen you will load at first
+UI = LoginUI() # This line determines which screen you will load at first
 
 # You can also try one of other screens to see them.
     # UI = MainMenuUI()
