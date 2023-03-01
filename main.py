@@ -8,6 +8,18 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import QTimer
 import sys 
+import json
+
+
+def read_file():
+    with open("data.json", 'r') as f:
+         data = json.load(f)
+    return data
+
+def write_file(data):
+    with open("data.json", 'w') as file:
+        json.dump(data, file)
+    
 
 class LoginUI(QDialog):
     def __init__(self):
@@ -16,25 +28,70 @@ class LoginUI(QDialog):
 
         self.loginButton.clicked.connect(self.login)
         self.signUpButton.clicked.connect(self.signUp)
-
-
+        self.errorTextLogin.setText("")
+        self.errorTextSignUp.setText("")
+        
     def go_main_menu(self):
         main_menu = MainMenuUI()
         widget.addWidget(main_menu)
         widget.setCurrentIndex(widget.currentIndex()+1)
     
-    def login(self):
-        login_email = self.emailInputLogin.text()
-        self.errorTextLogin.setText("")
-        #self.go_main_menu()
+    def login(self): 
+        try:
+           data = read_file()
+        except:
+         self.errorTextLogin.setText("Account Not Found, please Sign Up")
+        else:    
+            self.user_emails = data.keys()
+            self.login_email = self.emailInputLogin.text()
+            
+            if self.login_email =="" :
+             self.errorTextLogin.setText("Email can not be empty!")
+        
+            elif self.login_email in self.user_emails:
+             global user
+             user = User(self.login_email)
+             self.go_main_menu()
+            else:
+             self.errorTextLogin.setText("Account Not Found, please Sign Up")
+        
     
-    def signUp(self):
-        sign_up_email = self.emailInputSignUp.text()
-        sign_up_name = self.nameInputSignUp.text()
-        self.errorTextSignUp.setText("")
-        #self.go_main_menu()
+    
+    def  signUp(self):
+        email = self.emailInputSignUp.text()
+        name = self.nameInputSignUp.text()
+        try:
+          data = read_file()
+          if not data:
+              data = dict()
+        except:
+            data = {}
+        if email =="" or name =="":
+            self.errorTextSignUp.setText("Email/name can not be empty")
+        elif email not in data.keys():
+            new_user = {email: {"name": name,
+                                     'recipients': [email],
+                                     "projects": {}, }}
+            data.update(new_user)
+            write_file(data)
+            self.emailInputSignUp.setText("")
+            self.nameInputSignUp.setText("")
+            self.errorTextSignUp.setText("Account created successfully!, please Login")
+        else:
+            self.errorTextSignUp.setText("Account already exist, please Login")
 
 
+
+class User:
+    def __init__(self, email):  
+        data = read_file()
+        self.data = data.get(email)
+        self.email = email
+        self.name = self.data.get('name')
+        self.projects = self.data.get('projects')
+        self.recipients = self.data.get('recipients')
+        
+        
 class MainMenuUI(QDialog):
     def __init__(self):
         super(MainMenuUI,self).__init__()
@@ -53,7 +110,7 @@ class MainMenuUI(QDialog):
         self.addProjectButton.clicked.connect(self.add_project)
         self.subject_add = self.addSubjectInput
         self.selected_project_for_subject = self.addSubjectOnProjectCombo
-        self.error_project_input=self.errorTextSubjectLabel
+        self.error_subject_input=self.errorTextSubjectLabel
         self.addSubjectButton.clicked.connect(self.add_subject)
         self.selected_project_to_start = self.selectProjectCombo
         self.selected_subject_to_start = self.selectSubjectCombo
@@ -64,55 +121,145 @@ class MainMenuUI(QDialog):
         self.showSummaryButton.clicked.connect(self.show_summary)
         self.sendEmailThisSummaryButton.clicked.connect(self.send_email)
         self.total_tracked_time = self.totalTrackedTimeDurationLabel
+        self.errorTextRecipientsEmailLabel.setText("")
+        self.error_subject_input.setText("")
+        self.error_project_input.setText("")
+        for i in user.recipients:
+            self.deleteRecipientCombo.addItem(i)
+        for i in user.projects:
+            self.selected_project_delete.addItem(i)
+            self.selected_project_to_start.addItem(i)
+            self.selected_project_summary.addItem(i)
+            self.selected_project_for_subject.addItem(i)
+            
+        self.selected_project_delete.currentTextChanged.connect(
+            self.on_change_select_subject_to_delete)
+        self.selected_project_to_start.currentTextChanged.connect(
+            self.on_change_select_subject_pomodoro)
 
-        
+    def on_change_select_subject_to_delete(self, value):
+        if value == 'Select Project':
+            self.selected_subject_delete.clear()
+        else:
+         self.selected_subject_delete.clear()
+         self.data = read_file()
+         subject=self.data[user.email]['projects'][value].keys()
+         for i in subject:
+             self.selected_subject_delete.addItem(i)
+
+    def on_change_select_subject_pomodoro(self, value):
+        if value == 'Select Project':
+            self.selected_subject_to_start.clear()
+        else:
+         self.selected_subject_to_start.clear()
+         self.data = read_file()
+         subject = self.data[user.email]['projects'][value].keys()
+         for i in subject:
+             self.selected_subject_to_start.addItem(i)
+         
     def add_recipients_email(self):
         regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
-        
-        if(re.fullmatch(regex, self.recipients_email.text())):
-           self.error_recipient.setText("Recipient email is saved")
-           with open ('recipient.txt', 'a') as f:
-               f.write(self.recipients_email.text())
-               f.write('\n')
-               self.deleteRecipientCombo.addItem(self.recipients_email.text())
+        recipient_email = self.recipients_email.text()
+        if (re.fullmatch(regex, recipient_email)):
+
+              self.data = read_file()
+              
+              if recipient_email in self.data[user.email]['recipients']:
+                 self.error_recipient.setText("Email already exist")
+              else:
+                self.data[user.email]['recipients'].append(recipient_email)
+                self.data.update()
+                write_file(self.data)
+                self.error_recipient.setText("Recipient email is saved")
+                self.deleteRecipientCombo.addItem(recipient_email)
+                self.recipients_email.setText("")
         else:
-            self.error_recipient.setText("Invalid")
+            self.error_recipient.setText("Invalid Email Format") 
+        
+     
+          
     def delete_recipients_email(self):
-         with open ('recipient.txt') as f:
-               emails=f.readlines()
-         with open ('recipient.txt','w') as f:
-               for email in emails:
-                   if (self.selected_recipient_delete.currentText()!= email.strip()):
-                       f.write(email)
-                    
+            recipient_email = self.deleteRecipientCombo.currentText()
+            self.data = read_file()
+            self.data[user.email]['recipients'].remove(recipient_email)
+            self.data.update()
+            write_file(self.data)
+            self.error_recipient.setText("Recipient email is deleted")
+            self.deleteRecipientCombo.removeItem(
+                 self.deleteRecipientCombo.currentIndex())
+            
+            
     def add_project(self):
-        with open ('project.txt', 'a') as f:
-               f.write(self.project_add.text())
-               f.write('\n')
-               self.projectDeleteCombo.addItem(self.project_add.text())
+        project_name = self.project_add.text()
+        self.data = read_file()
+        if project_name =="":
+           self.error_project_input.setText("Project can't be empty")
+        
+        elif project_name in self.data[user.email]['projects']:
+            self.error_project_input.setText("Project already exist")
+        else:
+           
+            self.data[user.email]['projects'][project_name]={}
+            self.data.update()
+            write_file(self.data)
+            self.error_project_input.setText("Project is added")
+            self.project_add.setText("")
+            self.selected_project_delete.addItem(project_name)
+            self.selected_project_to_start.addItem(project_name)
+            self.selected_project_summary.addItem(project_name)
+            self.selected_project_for_subject.addItem(project_name)
+        
     def delete_project(self):
-        with open ('project.txt') as f:
-               projects=f.readlines()
-        with open ('project.txt','w') as f:
-               for project in projects:
-                   if (self.projectDeleteCombo.currentText()!= project.strip()):
-                       f.write(project)
+       project_name = self.selected_project_delete.currentText()
+       project_index = self.selected_project_delete.currentIndex()
+       if project_index == 0:
+          print ("No project found")
+       else:
+        self.data = read_file()
+        self.data[user.email]['projects'].pop(project_name)
+        self.data.update()
+        write_file(self.data)
+        self.selected_project_delete.removeItem(
+            self.selected_project_delete.currentIndex())
+        self.selected_project_to_start.removeItem(project_index)
+        self.selected_project_summary.removeItem(project_index)   
+        self.selected_project_for_subject.removeItem(project_index)
+       
     def add_subject(self):
-        with open ('subject.txt', 'a') as f:
-               f.write(self.subject_add.text())
-               f.write('\n')
-               self.subjectDeleteCombo.addItem(self.subject_add.text())
+        project=self.selected_project_for_subject.currentText()
+        subject = self.subject_add.text()
+        index = self.selected_project_for_subject.currentIndex()
+        self.data = read_file()
+        if index == 0:
+            self.error_subject_input.setText("Select project First")
+        elif subject =="":
+            self.error_subject_input.setText("Subject can't be empty")
+        else:
+            self.data[user.email]['projects'][project][subject] = {}
+            self.data.update()
+            write_file(self.data)
+            self.error_subject_input.setText("Subject is added")
+            self.subject_add.setText("")
+            self.selected_project_delete.setCurrentIndex(0)
+            self.selected_project_to_start.setCurrentIndex(0)
+           
+            
+            
     def delete_subject(self):
-        with open ('subject.txt') as f:
-               subjects=f.readlines()
-        with open ('subject.txt','w') as f:
-               for subject in subjects:
-                   if (self.subjectDeleteCombo.currentText()!= subject.strip()):
-                       f.write(subject)
-    def select_project():
-        pass
-    def select_subject():
-        pass
+        project_name = self.selected_project_delete.currentText()
+        project_index =self.selected_project_delete.currentIndex()
+        subject = self.selected_subject_delete.currentText()
+        if subject == '' or project_index == 0:
+            print("No subject found")
+        else:
+            self.data = read_file()
+            self.data[user.email]['projects'][project_name].pop(subject)
+            self.data.update()
+            write_file(self.data)
+            self.selected_subject_delete.removeItem(
+                self.selected_subject_delete.currentIndex())
+  
+  
     def start_pomodoro():
         pass
     def show_summary():

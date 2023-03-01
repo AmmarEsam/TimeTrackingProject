@@ -156,19 +156,9 @@ color:rgb(255, 255, 255);</string>
       <property name="styleSheet">
        <string notr="true"/>
       </property>
-      <item>
+     <item>
        <property name="text">
-        <string>project01</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>project02</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>project03</string>
+        <string>Select Project</string>
        </property>
       </item>
      </widget>
@@ -253,21 +243,7 @@ color:rgb(255, 255, 255);</string>
       <property name="styleSheet">
        <string notr="true"/>
       </property>
-      <item>
-       <property name="text">
-        <string>subject01</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>subject02</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>subject03</string>
-       </property>
-      </item>
+      
      </widget>
     </widget>
     <widget class="QWidget" name="recipientsWidget" native="true">
@@ -350,21 +326,6 @@ color:rgb(255, 255, 255);</string>
       <property name="styleSheet">
        <string notr="true"/>
       </property>
-      <item>
-       <property name="text">
-        <string>bahadir_friend@mail.com</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>bahadir_parent@mail.com</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>bahadir_boss@mail.com</string>
-       </property>
-      </item>
      </widget>
      <widget class="QLineEdit" name="addRecipientInput">
       <property name="geometry">
@@ -649,17 +610,7 @@ border-radius:20px;
       </property>
       <item>
        <property name="text">
-        <string>project01</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>project02</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>project03</string>
+        <string>Select Project</string>
        </property>
       </item>
      </widget>
@@ -726,21 +677,7 @@ color:rgb(255, 255, 255);</string>
       <property name="styleSheet">
        <string notr="true"/>
       </property>
-      <item>
-       <property name="text">
-        <string>Subject03</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Subject01</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Subject02</string>
-       </property>
-      </item>
+     
      </widget>
     </widget>
     <widget class="QWidget" name="addSubjectWidget" native="true">
@@ -792,17 +729,7 @@ border-radius:10px;
       </property>
       <item>
        <property name="text">
-        <string>project01</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>project02</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>project03</string>
+        <string>Select Project</string>
        </property>
       </item>
      </widget>
@@ -919,21 +846,7 @@ border-radius:40px;
         <string>All</string>
        </property>
       </item>
-      <item>
-       <property name="text">
-        <string>project01</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>project02</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>project03</string>
-       </property>
-      </item>
+      
      </widget>
      <widget class="QLabel" name="showSummaryProjectText">
       <property name="geometry">
@@ -1029,21 +942,6 @@ border-radius:40px;
       <item>
        <property name="text">
         <string>All</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Subject01</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Subject02</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Subject03</string>
        </property>
       </item>
      </widget>
