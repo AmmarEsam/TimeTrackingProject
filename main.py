@@ -279,14 +279,15 @@ class MainMenuUI(QDialog):
 
 class PomodoroUI(QDialog):
     global session_number
+    session_number =1
     
-    def __init__(self,selected_project,selected_subject):
+    def __init__(self,*args):
         super(PomodoroUI,self).__init__()
         loadUi("./UI/pomodoro.ui",self)
-        self.selected_project = selected_project
-        self.selected_subject = selected_subject
+        self.selected_project = args[0]
+        self.selected_subject = args[1]
         self.task_name = self.taskInput
-        self.remaining_time = 120
+        self.remaining_time = 1501
         self.timer = QTimer(self)
         
         self.goToMainMenuButton.clicked.connect(self.go_main_menu)
@@ -295,13 +296,14 @@ class PomodoroUI(QDialog):
         self.startStopButton.clicked.connect(self.time_counter) 
         self.doneButton.clicked.connect(self.end_session) 
         self.labelAsNotFinishedButton.clicked.connect(self.accomplished_task)
+        
         self.data = read_file()
         self.display_session_num()
         # for i in user.tasks:
         #  self.tasksCombo.addItem(i)
     def display_session_num(self):
        
-        self.pomodoroSession.setText(f'pomodoro session {session_number}')
+        self.numberOfSession.setText(str(session_number))
         
     def add_task(self):
         if self.task_name.text() == " " or self.task_name.text() =="Task can't be empty":
@@ -331,7 +333,7 @@ class PomodoroUI(QDialog):
          
        
     def time_counter(self):
-        if self.tasksCombo.currentText()!='' or self.tasksCombo.currentText()!= 'choose task first':
+        if self.tasksCombo.currentText()!=" " or self.tasksCombo.currentText()!= "choose task first":
            self.timer.start(self.remaining_time)
         else:
             self.tasksCombo.setText('choose task first')
@@ -407,6 +409,9 @@ class ShortBreakUI(QDialog):
         
         if self.remaining_time <= 0:
             self.timer.stop()
+            # pmodoro = PomodoroUI()
+            # widget.addWidget(pmodoro)
+            # widget.setCurrentIndex(widget.currentIndex()+1)
             self.done(0)
             
     def start_timer(self):
