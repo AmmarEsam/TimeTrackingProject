@@ -10,7 +10,7 @@ from PyQt5.QtCore import QTimer
 import sys 
 import json
 
-
+session_number = 1
 
 def read_file():
     with open("data.json", 'r') as f:
@@ -92,7 +92,7 @@ class User:
         self.projects = self.data.get('projects')
         self.recipients = self.data.get('recipients')
         self.pomodoro = self.data.get('pomodoro')
-        self.tasks = self.data.get('task')
+        #self.tasks = self.data.get('task')
         
         
 class MainMenuUI(QDialog):
@@ -279,14 +279,14 @@ class MainMenuUI(QDialog):
 
 class PomodoroUI(QDialog):
     global session_number
-    session_number = 1
+    
     def __init__(self,selected_project,selected_subject):
         super(PomodoroUI,self).__init__()
         loadUi("./UI/pomodoro.ui",self)
         self.selected_project = selected_project
         self.selected_subject = selected_subject
         self.task_name = self.taskInput
-        self.remaining_time = 1501
+        self.remaining_time = 120
         self.timer = QTimer(self)
         
         self.goToMainMenuButton.clicked.connect(self.go_main_menu)
@@ -298,7 +298,7 @@ class PomodoroUI(QDialog):
         self.data = read_file()
         self.display_session_num()
         # for i in user.tasks:
-        #    self.tasksCombo.addItem(i)
+        #  self.tasksCombo.addItem(i)
     def display_session_num(self):
        
         self.pomodoroSession.setText(f'pomodoro session {session_number}')
@@ -331,7 +331,11 @@ class PomodoroUI(QDialog):
          
        
     def time_counter(self):
-        self.timer.start(self.remaining_time)
+        if self.tasksCombo.currentText()!='' or self.tasksCombo.currentText()!= 'choose task first':
+           self.timer.start(self.remaining_time)
+        else:
+            self.tasksCombo.setText('choose task first')
+
 
     def update_time_counter(self):
         self.remaining_time -= 1
@@ -340,13 +344,21 @@ class PomodoroUI(QDialog):
         
         if self.remaining_time <= 0:
             self.timer.stop()
+            self.end_session()
 
 
     def start_session():
         pass
-    def end_session():
-        pass
-    def accomplished_task():
+    def end_session(self):
+        global session_number 
+        if session_number !=4 or self.doneButton.clicked:
+                session_number+=1           
+                shortBreak = ShortBreakUI()
+                widget.addWidget(shortBreak)
+                widget.setCurrentIndex(widget.currentIndex()+1)
+                                                                  
+
+    def accomplished_task(self):
         pass
     def go_main_menu(self):
         main_menu = MainMenuUI()
