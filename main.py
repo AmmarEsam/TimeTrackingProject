@@ -92,7 +92,7 @@ class User:
         self.projects = self.data.get('projects')
         self.recipients = self.data.get('recipients')
         self.pomodoro = self.data.get('pomodoro')
-        #self.tasks = self.data.get('task')
+        
         
         
 class MainMenuUI(QDialog):
@@ -281,11 +281,11 @@ class PomodoroUI(QDialog):
     global session_number
     session_number =1
     
-    def __init__(self,*args):
+    def __init__(self,project,subject):
         super(PomodoroUI,self).__init__()
         loadUi("./UI/pomodoro.ui",self)
-        self.selected_project = args[0]
-        self.selected_subject = args[1]
+        self.selected_project = project
+        self.selected_subject = subject
         self.task_name = self.taskInput
         self.remaining_time = 1501
         self.timer = QTimer(self)
@@ -299,8 +299,6 @@ class PomodoroUI(QDialog):
         
         self.data = read_file()
         self.display_session_num()
-        # for i in user.tasks:
-        #  self.tasksCombo.addItem(i)
     def display_session_num(self):
        
         self.numberOfSession.setText(str(session_number))
@@ -355,9 +353,15 @@ class PomodoroUI(QDialog):
         global session_number 
         if session_number !=4 or self.doneButton.clicked:
                 session_number+=1           
-                shortBreak = ShortBreakUI()
+                shortBreak = ShortBreakUI(self.selected_project,self.selected_subject)
+            
                 widget.addWidget(shortBreak)
                 widget.setCurrentIndex(widget.currentIndex()+1)
+        else:
+            long_break = LongBreakUI()
+            
+            widget.addWidget(long_break)
+            widget.setCurrentIndex(widget.currentIndex()+1)
                                                                   
 
     def accomplished_task(self):
@@ -383,10 +387,12 @@ class PomodoroUI(QDialog):
     #    pass
 
 class ShortBreakUI(QDialog):
-    def __init__(self):
+    def __init__(self,project,subject):
         super(ShortBreakUI, self).__init__()
         loadUi('ui/shortBreak.ui', self)
         self.setWindowTitle('Short Break')
+        self.project = project
+        self.subject = subject
         
         self.remaining_time = 300  # 5 minutes in seconds   
         self.timer = QTimer(self)
@@ -409,15 +415,18 @@ class ShortBreakUI(QDialog):
         
         if self.remaining_time <= 0:
             self.timer.stop()
-            # pmodoro = PomodoroUI()
-            # widget.addWidget(pmodoro)
-            # widget.setCurrentIndex(widget.currentIndex()+1)
+            pmodoro = PomodoroUI(self.project,self.subject)
+            widget.addWidget(pmodoro)
+            widget.setCurrentIndex(widget.currentIndex()+1)
             self.done(0)
             
     def start_timer(self):
         self.timer.start(1000)
         
     def skip_break(self):
+        pmodoro = PomodoroUI(self.project,self.subject)
+        widget.addWidget(pmodoro)
+        widget.setCurrentIndex(widget.currentIndex()+1)
         self.done(1)
         
     def go_to_main_menu(self):
@@ -442,7 +451,7 @@ class LongBreakUI(QDialog):
         super(LongBreakUI, self).__init__()
         loadUi('ui/longBreak.ui', self)
         self.setWindowTitle('Long Break')
-
+        
         self.remaining_time = 900  # 15 minutes in seconds   
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_time)
