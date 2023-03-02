@@ -291,6 +291,7 @@ class PomodoroUI(QDialog):
         
         self.goToMainMenuButton.clicked.connect(self.go_main_menu)
         self.addTask.clicked.connect(self.add_task)
+        self.timer.timeout.connect(self.update_time_counter)
         self.startStopButton.clicked.connect(self.time_counter) 
         self.doneButton.clicked.connect(self.end_session) 
         self.labelAsNotFinishedButton.clicked.connect(self.accomplished_task)
@@ -330,15 +331,15 @@ class PomodoroUI(QDialog):
          
        
     def time_counter(self):
-        self.timer.start(1)
-        while self.remaining_time:
-            
-            mins, secs = divmod(self.remaining_time, 60)
-            #self.timer.start(self.remaining_time )
-            self.remaining_time -= 1
-            self.timeLabel.setText("{:02d}:{:02d}".format(mins, secs))
-           
-       
+        self.timer.start(self.remaining_time)
+
+    def update_time_counter(self):
+        self.remaining_time -= 1
+        minutes, seconds = divmod(self.remaining_time,60)
+        self.timeLabel.setText("{:02d}:{:02d}".format(minutes, seconds))
+        
+        if self.remaining_time <= 0:
+            self.timer.stop()
 
 
     def start_session():
