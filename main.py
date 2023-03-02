@@ -11,6 +11,7 @@ import sys
 import json
 
 
+
 def read_file():
     with open("data.json", 'r') as f:
          data = json.load(f)
@@ -90,6 +91,8 @@ class User:
         self.name = self.data.get('name')
         self.projects = self.data.get('projects')
         self.recipients = self.data.get('recipients')
+        self.pomodoro = self.data.get('pomodoro')
+        self.tasks = self.data.get('task')
         
         
 class MainMenuUI(QDialog):
@@ -114,7 +117,7 @@ class MainMenuUI(QDialog):
         self.addSubjectButton.clicked.connect(self.add_subject)
         self.selected_project_to_start = self.selectProjectCombo
         self.selected_subject_to_start = self.selectSubjectCombo
-        self.startPomodoroButton.clicked.connect(self.start_pomodoro)
+        self.startPomodoroButton.clicked.connect(self.go_to_pomodoro)
         self.selected_project_summary = self.showSummaryProjectCombo
         self.selected_subject_summary = self.showSummarySubjectCombo
         self.selected_period_summary = self.showSummaryPeriodCombo
@@ -260,8 +263,10 @@ class MainMenuUI(QDialog):
                 self.selected_subject_delete.currentIndex())
   
   
-    def start_pomodoro():
-        pass
+    def go_to_pomodoro(self):
+        pomodoro_screen = PomodoroUI(self.selectProjectCombo.currentText(),self.selectSubjectCombo.currentText())
+        widget.addWidget(pomodoro_screen)
+        widget.setCurrentIndex(widget.currentIndex()+1)
     def show_summary():
         pass
     def send_email():
@@ -270,30 +275,82 @@ class MainMenuUI(QDialog):
         pass
     
     
-    
+
 
 class PomodoroUI(QDialog):
-    def __init__(self):
+    global session_number
+    session_number = 1
+    def __init__(self,selected_project,selected_subject):
         super(PomodoroUI,self).__init__()
         loadUi("./UI/pomodoro.ui",self)
-        self.goToMainMenuButton.clicked.connect(self.main_menu)
+        self.selected_project = selected_project
+        self.selected_subject = selected_subject
+        self.task_name = self.taskInput
+        self.remaining_time = 1501
+        self.timer = QTimer(self)
+        
+        self.goToMainMenuButton.clicked.connect(self.go_main_menu)
         self.addTask.clicked.connect(self.add_task)
         self.startStopButton.clicked.connect(self.time_counter) 
         self.doneButton.clicked.connect(self.end_session) 
         self.labelAsNotFinishedButton.clicked.connect(self.accomplished_task)
+        self.data = read_file()
+        self.display_session_num()
+        # for i in user.tasks:
+        #    self.tasksCombo.addItem(i)
+    def display_session_num(self):
+       
+        self.pomodoroSession.setText(f'pomodoro session {session_number}')
         
-    def display_session_num():
-        pass
-    def add_task():
-        pass
-    def time_counter():
-        pass
+    def add_task(self):
+        if self.task_name.text() == " " or self.task_name.text() =="Task can't be empty":
+           self.task_name.setText("Task can't be empty")
+        
+        else:
+          try:
+           self.data[user.email]['projects'][ self.selected_project][self.selected_subject]['pomodoro']
+           
+          except:
+              self.data[user.email]['projects'][ self.selected_project][self.selected_subject]['pomodoro']={}
+              self.data[user.email]['projects'][ self.selected_project][self.selected_subject]['pomodoro'][f'session{session_number}'] = {'task':{}}
+
+          else:    
+              try:
+                  self.data[user.email]['projects'][ self.selected_project][self.selected_subject]['pomodoro'][f'session{session_number}']['task']
+              except:
+                     self.data[user.email]['projects'][ self.selected_project][self.selected_subject]['pomodoro'][f'session{session_number}'] = {'task':{}}
+        
+          finally:
+              
+              self.data[user.email]['projects'][ self.selected_project][self.selected_subject]['pomodoro'][f'session{session_number}']['task'][self.task_name.text()]=''
+              self.data.update()
+              write_file(self.data)
+              self.tasksCombo.addItem(self.task_name.text())
+              self.task_name.setText(" ")
+         
+       
+    def time_counter(self):
+        self.timer.start(1)
+        while self.remaining_time:
+            
+            mins, secs = divmod(self.remaining_time, 60)
+            #self.timer.start(self.remaining_time )
+            self.remaining_time -= 1
+            self.timeLabel.setText("{:02d}:{:02d}".format(mins, secs))
+           
+       
+
+
     def start_session():
         pass
     def end_session():
         pass
     def accomplished_task():
         pass
+    def go_main_menu(self):
+        main_menu = MainMenuUI()
+        widget.addWidget(main_menu)
+        widget.setCurrentIndex(widget.currentIndex()+1)
     
 
 #class ShortBreakUI(QDialog):
