@@ -11,6 +11,7 @@ from datetime import date
 import datetime
 import sys
 import json
+import vlc
 
 
 def read_file():
@@ -336,7 +337,7 @@ class MainMenuUI(QDialog):
             else:
                 start,end = self.this_month(project,subject,k,c)
             if start!=0 and end != 0:
-                c+=1
+               c+=1
             calc_hr, calc_min = self.total_hrs(start,end)
             total_hr += calc_hr
             total_min += calc_min
@@ -359,9 +360,8 @@ class MainMenuUI(QDialog):
                      start,end = self.this_week(i,j,k,c)
                  else:
                     start,end = self.this_month(i,j,k,c)
-                 if start!=0 and end != 0:
-                    c+=1
-                 
+                 if start !=0 and end != 0:
+                   c+=1
                  calc_hr, calc_min = self.total_hrs(start,end)
                  total_hr += calc_hr
                  total_min += calc_min         
@@ -449,6 +449,8 @@ class MainMenuUI(QDialog):
 class PomodoroUI(QDialog):
     global session_number
     session_number = 1
+    
+
 
     def __init__(self, project_name, subject_name):
         super(PomodoroUI, self).__init__()
@@ -474,6 +476,8 @@ class PomodoroUI(QDialog):
         self.data[user.email]['projects'][self.project_name][self.subject_name]['session' +
                                                                                 str(session_number)] = {'date': str(self.today), 'start': str(self.current_time), 'end': '', 'tasks': {'success':[],'fail':[]}}
         self.data.update()
+        
+        
         write_file(self.data)
 
     def main_menu(self):
@@ -483,7 +487,7 @@ class PomodoroUI(QDialog):
 
     def add_task(self):
         self.task = self.taskInput.text()
-        if self.task == "":
+        if self.task == " ":
             pass
         else:
             
@@ -505,8 +509,9 @@ class PomodoroUI(QDialog):
 
     def time_counter(self):
         self.timer.start(2)  # it will be 1500 in real code
-
+        
     def update_time_counter(self):
+       
         self.remaining_time -= 1
         minutes = self.remaining_time // 60
         seconds = self.remaining_time % 60
@@ -514,6 +519,7 @@ class PomodoroUI(QDialog):
 
         if self.remaining_time <= 0:
             self.timer.stop()
+            
             # self.done(0)
 
     def end_session(self):
@@ -582,6 +588,9 @@ class ShortBreakUI(QDialog):
             QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.skipButton.setSizePolicy(
             QSizePolicy.Expanding, QSizePolicy.Expanding)
+        instance = vlc.Instance()
+        self.player = instance.media_player_new()
+        self.working_time = instance.media_new("scott-buckley-moonlight.mp3")
 
         self.update_time()
         self.project_name = project_name
@@ -596,6 +605,7 @@ class ShortBreakUI(QDialog):
 
         if self.remaining_time <= 0:
             self.timer.stop()
+            self.player.stop()
             session_number += 1
             skipBreak = PomodoroUI(self.project_name,
                                    self.subject_name)
@@ -605,11 +615,14 @@ class ShortBreakUI(QDialog):
             # self.done(0)
 
     def start_timer(self):
-        self.timer.start(3)
+        self.timer.start(300)
+        self.player.set_media(self.working_time)
+        self.player.play()
 
     def skip_break(self):
         global session_number
         session_number += 1
+        self.player.stop()
         skipBreak = PomodoroUI(self.project_name,
                                self.subject_name)
         widget.addWidget(skipBreak)
