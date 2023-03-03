@@ -11,8 +11,12 @@ from datetime import date
 import datetime
 import sys
 import json
+import os
+import ssl
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 import vlc
-
 
 def read_file():
     with open("data.json", 'r') as f:
@@ -128,7 +132,6 @@ class MainMenuUI(QDialog):
         self.errorTextRecipientsEmailLabel.setText("")
         self.error_subject_input.setText("")
         self.error_project_input.setText("")
-        self.data = read_file()
         for i in user.recipients:
             self.deleteRecipientCombo.addItem(i)
         for i in user.projects:
@@ -143,13 +146,14 @@ class MainMenuUI(QDialog):
             self.on_change_select_subject_pomodoro)
         self.selected_project_summary.currentTextChanged.connect(
             self.on_change_select_subject_summary)
+        self.titleWorkspaceLabel.setText(user.name.capitalize()+"'s Workspace")
 
     def on_change_select_subject_to_delete(self, value):
         if value == 'Select Project':
             self.selected_subject_delete.clear()
         else:
          self.selected_subject_delete.clear()
-        #  self.data = read_file()
+         self.data = read_file()
          subject = self.data[user.email]['projects'][value].keys()
          for i in subject:
              self.selected_subject_delete.addItem(i)
@@ -159,17 +163,18 @@ class MainMenuUI(QDialog):
             self.selected_subject_to_start.clear()
         else:
          self.selected_subject_to_start.clear()
-        #  self.data = read_file()
+         self.data = read_file()
          subject = self.data[user.email]['projects'][value].keys()
          for i in subject:
              self.selected_subject_to_start.addItem(i)
 
     def on_change_select_subject_summary(self, value):
-        if value == 'Select Project':
+        if value == 'All':
             self.selected_subject_summary.clear()
+            self.selected_subject_summary.addItem('All')
         else:
          self.selected_subject_summary.clear()
-        #  self.data = read_file()
+         self.data = read_file()
          subject = self.data[user.email]['projects'][value].keys()
          for i in subject:
              self.selected_subject_summary.addItem(i)
@@ -179,7 +184,7 @@ class MainMenuUI(QDialog):
         recipient_email = self.recipients_email.text()
         if (re.fullmatch(regex, recipient_email)):
 
-            #self.data = read_file()
+            self.data = read_file()
 
             if recipient_email in self.data[user.email]['recipients']:
                 self.error_recipient.setText("Email already exist")
@@ -195,7 +200,7 @@ class MainMenuUI(QDialog):
 
     def delete_recipients_email(self):
         recipient_email = self.deleteRecipientCombo.currentText()
-        #self.data = read_file()
+        self.data = read_file()
         self.data[user.email]['recipients'].remove(recipient_email)
         self.data.update()
         write_file(self.data)
@@ -205,7 +210,7 @@ class MainMenuUI(QDialog):
 
     def add_project(self):
         project_name = self.project_add.text()
-        #self.data = read_file()
+        self.data = read_file()
         if project_name == "":
            self.error_project_input.setText("Project can't be empty")
 
@@ -229,7 +234,7 @@ class MainMenuUI(QDialog):
        if project_index == 0:
           print("No project found")
        else:
-        #self.data = read_file()
+        self.data = read_file()
         self.data[user.email]['projects'].pop(project_name)
         self.data.update()
         write_file(self.data)
@@ -243,7 +248,7 @@ class MainMenuUI(QDialog):
         project = self.selected_project_for_subject.currentText()
         subject = self.subject_add.text()
         index = self.selected_project_for_subject.currentIndex()
-        #self.data = read_file()
+        self.data = read_file()
         if index == 0:
             self.error_subject_input.setText("Select project First")
         elif subject == "":
@@ -264,7 +269,7 @@ class MainMenuUI(QDialog):
         if subject == '' or project_index == 0:
             print("No subject found")
         else:
-            #self.data = read_file()
+            self.data = read_file()
             self.data[user.email]['projects'][project_name].pop(subject)
             self.data.update()
             write_file(self.data)
@@ -274,34 +279,39 @@ class MainMenuUI(QDialog):
     def start_pomodoro(self):
         project_name = self.selected_project_to_start.currentText()
         subject_name = self.selected_subject_to_start.currentText()
-        if subject_name != "":
-            self.data = read_file()
-            self.data[user.email]['projects'][project_name][subject_name] = {
-                'session1': {}, 'session2': {}, 'session3': {}, 'session4': {}}
-            self.data.update()
-            write_file(self.data)
+        if subject_name!="":
+            #self.data = read_file()
+            #self.data[user.email]['projects'][project_name][subject_name] = {
+             #   'session1': {}, 'session2': {}, 'session3': {}, 'session4': {}}
+            #self.data.update()
+            #write_file(self.data)
             pomodoro = PomodoroUI(project_name, subject_name)
             widget.addWidget(pomodoro)
             widget.setCurrentIndex(widget.currentIndex()+1)
+    
 
     def show_summary(self):
+        global row
+        row = {}
         self.project = self.selected_project_summary
         self.subject = self.selected_subject_summary
-        self.period = self.selected_period_summary 
-        projects = self.data[user.email]['projects'].keys() 
+        self.period = self.selected_period_summary
+        self.data = read_file()
+        projects = self.data[user.email]['projects'].keys()
         for i in reversed(range(self.summaryTableValuesWidget.rowCount())):
-         self.summaryTableValuesWidget.removeRow(i)   
-        
-        if self.project.currentText()=="All":
-            if self.subject.currentText()=="All":
-          
-              self.all_selected(projects,self.period.currentText())
+         self.summaryTableValuesWidget.removeRow(i)
+
+        if self.project.currentText() == "All":
+            if self.subject.currentText() == "All":
+
+              self.all_selected(projects, self.period.currentText())
             else:
                pass
-                #self.specific_project_all_subject()
+                # self.specific_project_all_subject()
         else:
-            if self.subject.currentText()!="All":
-                self.specific_subject_project(self.project.currentText(),self.subject.currentText(),self.period.currentText())
+            if self.subject.currentText() != "All":
+                self.specific_subject_project(self.project.currentText(
+                ), self.subject.currentText(), self.period.currentText())
             else:
                 pass
 
@@ -337,7 +347,7 @@ class MainMenuUI(QDialog):
             else:
                 start,end = self.this_month(project,subject,k,c)
             if start!=0 and end != 0:
-               c+=1
+                c+=1
             calc_hr, calc_min = self.total_hrs(start,end)
             total_hr += calc_hr
             total_min += calc_min
@@ -360,8 +370,9 @@ class MainMenuUI(QDialog):
                      start,end = self.this_week(i,j,k,c)
                  else:
                     start,end = self.this_month(i,j,k,c)
-                 if start !=0 and end != 0:
-                   c+=1
+                 if start!=0 and end != 0:
+                    c+=1
+                 
                  calc_hr, calc_min = self.total_hrs(start,end)
                  total_hr += calc_hr
                  total_min += calc_min         
@@ -403,7 +414,8 @@ class MainMenuUI(QDialog):
         return start, end
                  
     def table(self,dates,start,end,success,fail,c):
-                 
+                 row.update(
+                        {f'row'+str(c): [dates, start, end, success, fail]})
                  rowPosition = self.summaryTableValuesWidget.rowCount()
                  self.summaryTableValuesWidget.insertRow(c)
                  self.summaryTableValuesWidget.setItem(
@@ -435,22 +447,65 @@ class MainMenuUI(QDialog):
         self.table(dates,start,end,success_task,fail_task,c)
         return start, end
 
-                
-                             
-                 
+    def send_email(self):
+        global row
+        recipient_email = self.deleteRecipientCombo.currentText()
+        self.email_sender = 'fenyxclass8@gmail.com'
+        self.email_password = 'ncdt hlwf pdkz couj'
+        self.email_receiver = recipient_email
+
+        self.connection = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        self.connection.login(self.email_sender, self.email_password)
+        self.message = MIMEMultipart("alternatives")
+        self.message['Subject'] = 'Summary Of Pomodoro'
+        self.message['From'] = self.email_sender
+        self.message['To'] = self.email_receiver
+
         
+        self.html = """
+         <!DOCTYPE html>
+                <html>
+                <head>
+                <style>
+                table, th, td {
+                border: 1px solid black;
+                border-collapse: collapse;
+                }
+                </style>
+                </head>
+                <body>
+                <h2>Summary Of Pomodoro</h2>
+                <p></p>
+                <table style="width:100%">
+                <tr>
+                    <th>Date</th>
+                    <th>Starting Time</th> 
+                    <th>End Time</th>
+                    <th>Success(Tasks)</th>
+                    <th>Failure(Tasks)</th>
+                </tr>
+                    """ 
+        for i in row.values():
+            self.html += '<tr>'
+            for j in i:
+               self.html += '<td>'+j+'</td>'
+            '</tr>'
+        self.html+="""
+                </table>
+                </body>
+                </html>"""
 
-
-    def send_email():
-        pass
+        self.htmlPart = MIMEText(self.html, 'html')
+        self.message.attach(self.htmlPart)
+        self.connection.sendmail(
+            self.email_sender, self.email_receiver, self.message.as_string())
+        self.connection.quit()
 
 
 
 class PomodoroUI(QDialog):
     global session_number
     session_number = 1
-    
-
 
     def __init__(self, project_name, subject_name):
         super(PomodoroUI, self).__init__()
@@ -476,23 +531,27 @@ class PomodoroUI(QDialog):
         self.data[user.email]['projects'][self.project_name][self.subject_name]['session' +
                                                                                 str(session_number)] = {'date': str(self.today), 'start': str(self.current_time), 'end': '', 'tasks': {'success':[],'fail':[]}}
         self.data.update()
-        
-        
         write_file(self.data)
 
     def main_menu(self):
+        now = datetime.datetime.now()
+        self.end_time = now.strftime("%H:%M")
+        self.data = read_file()
+        self.data[user.email]['projects'][self.project_name][self.subject_name]['session' +
+                                                                                str(session_number)]['end'] = self.end_time
+        self.data.update()
+        write_file(self.data)
         mainMenu = MainMenuUI()
         widget.addWidget(mainMenu)
         widget.setCurrentIndex(widget.currentIndex()+1)
 
     def add_task(self):
         self.task = self.taskInput.text()
-        if self.task == " ":
+        if self.task == "":
             pass
         else:
             
             self.data = read_file()
-            
             check_task =self.data[user.email]['projects'][self.project_name][self.subject_name]['session' +
                                                                                     str(session_number)]['tasks']['success']
             if check_task =="":
@@ -509,9 +568,8 @@ class PomodoroUI(QDialog):
 
     def time_counter(self):
         self.timer.start(2)  # it will be 1500 in real code
-        
+
     def update_time_counter(self):
-       
         self.remaining_time -= 1
         minutes = self.remaining_time // 60
         seconds = self.remaining_time % 60
@@ -519,7 +577,6 @@ class PomodoroUI(QDialog):
 
         if self.remaining_time <= 0:
             self.timer.stop()
-            
             # self.done(0)
 
     def end_session(self):
@@ -555,20 +612,6 @@ class PomodoroUI(QDialog):
         self.data.update()
         write_file(self.data)
 
-# class ShortBreakUI(QDialog):
-    # def __init__(self):
-     #   super(ShortBreakUI,self).__init__()
-     #  loadUi("./UI/shortBreak.ui",self)
-
-   # def time_counter():
-   #     pass
-   # def start_timer():
-   #     pass
-   # def pause_timer():
-   #     pass
-  #  def skip_break():
-    #    pass
-
 
 class ShortBreakUI(QDialog):
     def __init__(self, project_name, subject_name):
@@ -591,7 +634,6 @@ class ShortBreakUI(QDialog):
         instance = vlc.Instance()
         self.player = instance.media_player_new()
         self.working_time = instance.media_new("scott-buckley-moonlight.mp3")
-
         self.update_time()
         self.project_name = project_name
         self.subject_name = subject_name
@@ -605,7 +647,7 @@ class ShortBreakUI(QDialog):
 
         if self.remaining_time <= 0:
             self.timer.stop()
-            self.player.stop()
+            self.player.stop() 
             session_number += 1
             skipBreak = PomodoroUI(self.project_name,
                                    self.subject_name)
@@ -615,14 +657,14 @@ class ShortBreakUI(QDialog):
             # self.done(0)
 
     def start_timer(self):
-        self.timer.start(300)
         self.player.set_media(self.working_time)
         self.player.play()
+        self.timer.start(300)
 
     def skip_break(self):
         global session_number
         session_number += 1
-        self.player.stop()
+        self.player.stop() 
         skipBreak = PomodoroUI(self.project_name,
                                self.subject_name)
         widget.addWidget(skipBreak)
@@ -633,20 +675,6 @@ class ShortBreakUI(QDialog):
         widget.addWidget(mainMenu)
         widget.setCurrentIndex(widget.currentIndex()+1)
 
-
-# class LongBreakUI(QDialog):
-   # def __init__(self):
-     #   super(LongBreakUI,self).__init__()
-     #   loadUi("./UI/longBreak.ui",self)
-
-  #  def time_counter():
-   #     pass
-  #  def start_timer():
-   #     pass
-  #  def pause_timer():
-   #     pass
-  #  def skip_break():
-   #     pass
 
 class LongBreakUI(QDialog):
     def __init__(self):
