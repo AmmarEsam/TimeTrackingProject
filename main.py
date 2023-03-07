@@ -147,6 +147,7 @@ class MainMenuUI(QDialog):
         self.selected_project_summary.currentTextChanged.connect(
             self.on_change_select_subject_summary)
         self.titleWorkspaceLabel.setText(user.name.capitalize()+"'s Workspace")
+        
 
     def on_change_select_subject_to_delete(self, value):
         if value == 'Select Project':
@@ -510,11 +511,12 @@ class PomodoroUI(QDialog):
     def __init__(self, project_name, subject_name):
         super(PomodoroUI, self).__init__()
         loadUi("./UI/pomodoro.ui", self)
-        self.goToMainMenuButton.clicked.connect(self.main_menu)
+        self.goToMainMenuButton.clicked.connect(self.go_main_menu)
         self.addTask.clicked.connect(self.add_task)
         self.remaining_time = 1501
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_time_counter)
+        self.resetButton.clicked.connect(self.reset_timer) 
         self.startStopButton.clicked.connect(self.time_counter)
         self.startStopButton.setSizePolicy(
             QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -524,20 +526,29 @@ class PomodoroUI(QDialog):
         self.project_name = project_name
         self.subject_name = subject_name
         self.numberOfSession.setText(str(session_number))
+       
         self.today = date.today()
         now = datetime.datetime.now()
         self.current_time = now.strftime("%H:%M")
         self.data = read_file()
         self.data[user.email]['projects'][self.project_name][self.subject_name]['session' +
-                                                                                str(session_number)] = {'date': str(self.today), 'start': str(self.current_time), 'end': '', 'tasks': {'success':[],'fail':[]}}
+                                                                                str(session_number)] = {'date': str(self.today), 'start': '00:00', 'end': '00:00', 'tasks': {'success':[],'fail':[]}}
         self.data.update()
         write_file(self.data)
 
-    def main_menu(self):
+    def go_main_menu(self):
         now = datetime.datetime.now()
-        self.end_time = now.strftime("%H:%M")
         self.data = read_file()
-        self.data[user.email]['projects'][self.project_name][self.subject_name]['session' +
+        if self.timer.isActive():
+         self.end_time = now.strftime("%H:%M")
+         self.data[user.email]['projects'][self.project_name][self.subject_name]['session' +
+                                                                                str(session_number)]['end'] = self.end_time
+        else:
+            self.start_time = now.strftime("%H:%M")
+            self.end_time = now.strftime("%H:%M")
+            self.data[user.email]['projects'][self.project_name][self.subject_name]['session' +
+                                                                                str(session_number)]['start'] = self.start_time
+            self.data[user.email]['projects'][self.project_name][self.subject_name]['session' +
                                                                                 str(session_number)]['end'] = self.end_time
         self.data.update()
         write_file(self.data)
@@ -547,8 +558,8 @@ class PomodoroUI(QDialog):
 
     def add_task(self):
         self.task = self.taskInput.text()
-        if self.task == "":
-            pass
+        if self.taskInput.text() == "" or self.taskInput.text() == "Enter a task please":
+            self.taskInput.setText("Enter a task please")
         else:
             
             self.data = read_file()
@@ -564,37 +575,64 @@ class PomodoroUI(QDialog):
             write_file(self.data)
             self.tasksCombo.addItem(self.task)
             self.tasksCombo_2.addItem(self.task)
-            self.taskInput.setText('')
+            
 
     def time_counter(self):
-        self.timer.start(2)  # it will be 1500 in real code
+        now = datetime.datetime.now()
+        self.current_time = now.strftime("%H:%M")
+        if self.tasksCombo.currentText() == "" or self.taskInput.text() == "Enter a task please":
+            self.taskInput.setText("Enter a task please")
+        else:  
+            
+            self.timer.start(1000)  
+            self.startStopButton.setStyleSheet("Qpushbutton{background-color:black")
+            self.data[user.email]['projects'][self.project_name][self.subject_name]['session' +
+                                                                                    str(session_number)]['start'] = self.current_time
+            self.data.update()
+            write_file(self.data)
+            self.startStopButton.setEnabled(False)
+            
+            
+            
 
     def update_time_counter(self):
-        self.remaining_time -= 1
-        minutes = self.remaining_time // 60
-        seconds = self.remaining_time % 60
-        self.timeLabel.setText("{:02d}:{:02d}".format(minutes, seconds))
-
-        if self.remaining_time <= 0:
-            self.timer.stop()
-            # self.done(0)
-
+                self.remaining_time -= 1
+                minutes = self.remaining_time // 60
+                seconds = self.remaining_time % 60
+                self.timeLabel.setText("{:02d}:{:02d}".format(minutes, seconds))
+                
+                if self.remaining_time <=0:
+                    self.timer.stop()
+                    
+                    # self.done(0)
+    def reset_timer(self):
+        self.timer.stop()
+        self.remaining_time = 1501
+        self.time_counter()
+        
     def end_session(self):
-        now = datetime.datetime.now()
-        self.end_time = now.strftime("%H:%M")
-        self.data = read_file()
-        self.data[user.email]['projects'][self.project_name][self.subject_name]['session' +
+        if self.tasksCombo.currentText() == "" or self.taskInput.text() == "Enter a task please":
+            self.taskInput.setText("Enter a task please")
+        else:    
+           if self.remaining_time <1500:
+                now = datetime.datetime.now()
+                self.end_time = now.strftime("%H:%M")
+           else:
+              self.end_time = "00:00"
+           self.data = read_file()
+           self.data[user.email]['projects'][self.project_name][self.subject_name]['session' +
                                                                                 str(session_number)]['end'] = self.end_time
-        self.data.update()
-        write_file(self.data)
-        if session_number != 4:
-            shortBreak = ShortBreakUI(self.project_name, self.subject_name)
-            widget.addWidget(shortBreak)
-            widget.setCurrentIndex(widget.currentIndex()+1)
-        else:
-            longBreak = LongBreakUI()
-            widget.addWidget(longBreak)
-            widget.setCurrentIndex(widget.currentIndex()+1)
+           self.data.update()
+           write_file(self.data)
+           if self.end_time != "00:00":
+             if session_number < 4:
+                shortBreak = ShortBreakUI(self.project_name, self.subject_name)
+                widget.addWidget(shortBreak)
+                widget.setCurrentIndex(widget.currentIndex()+1)
+             else:
+                longBreak = LongBreakUI()
+                widget.addWidget(longBreak)
+                widget.setCurrentIndex(widget.currentIndex()+1)
 
     def accomplished_task(self):
         self.unfinished_task = self.tasksCombo_2.currentText()
@@ -619,7 +657,7 @@ class ShortBreakUI(QDialog):
         loadUi('ui/shortBreak.ui', self)
         self.setWindowTitle('Short Break')
 
-        self.remaining_time = 301  # 5 minutes in seconds
+        self.remaining_time = 301 # 5 minutes in seconds
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_time)
 
@@ -659,12 +697,13 @@ class ShortBreakUI(QDialog):
     def start_timer(self):
         self.player.set_media(self.working_time)
         self.player.play()
-        self.timer.start(300)
+        self.timer.start(1000)
 
     def skip_break(self):
         global session_number
         session_number += 1
         self.player.stop() 
+        self.timer.stop()
         skipBreak = PomodoroUI(self.project_name,
                                self.subject_name)
         widget.addWidget(skipBreak)
@@ -682,7 +721,7 @@ class LongBreakUI(QDialog):
         loadUi('ui/longBreak.ui', self)
         self.setWindowTitle('Long Break')
 
-        self.remaining_time = 1801  # 15 minutes in seconds
+        self.remaining_time = 1801  # 30 minutes in seconds
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_time)
 
@@ -710,7 +749,7 @@ class LongBreakUI(QDialog):
             # self.done(0)
 
     def start_timer(self):
-        self.timer.start(3)
+        self.timer.start(1000)
 
     def skip_timer(self):
         global session_number
